@@ -60,7 +60,8 @@ from AP004
 select 
 	* 
 from
-(	select 
+	(
+	select 
 		ma_ncc,
 		trim(ten_ncc) ten_ncc,
 		loai_ct,
@@ -73,27 +74,27 @@ from
 			when ma_ncc in (select replace(ma_ncc,'.0','') from ncc_xlsx) then 'SPTM'
 			when trim(ten_ncc) not ilike '%công ty%' then 'Ca nhan'
 			when trim(ten_ncc) ilike '%hoa sen%' then 'Hoa Sen'
-			else null
+			else 'Chua xac dinh'
 		end as Loaigd
-	from cost_table ct )
-where Loaigd is null
-group by ten_ncc 
+	from "Cost_table_TXN"
+	)
+where Loaigd = 'Chua xac dinh'
 
 --------------------------------------------------------------------------------------------------
 -- Check do dai ky tu trong ID NCC (7 so)
 select 
 	ma_ncc 
-from ncc
+from "Suppliers_dim" 
 where length(ma_ncc) <> 7 and ma_ncc <> 'Chưa tìm ra'
 
 -- Check data loi co ky tu trong ID NCC	
 select 
 	ma_ncc::int
 from 
-	ncc
+	"Suppliers_dim"
 where ten_ncc not ilike 'Chưa tìm ra'
 
--- Check duplicate trong bang 
+-- Check duplicate trong bang Dim
 select 
 	mat_hang,
 	ma_ncc,
@@ -102,7 +103,7 @@ select
 	htht,
 	thuong_hieu,
 	count(*)
-from ncc
+from "Suppliers_dim"
 group by mat_hang, ma_ncc, ten_ncc, ten_viet_tat, htht, thuong_hieu
 having count(*) > 1
 
@@ -113,21 +114,21 @@ from ncc_xlsx a
 where not exists
 	(select 
 		1 
-	from ncc b
+	from "Suppliers_dim" b
 	where a.ma_ncc = b.ma_ncc 
 	)
 
 -- Them bang data NCC moi tam vao truoc, update lai bang goc
 -- Cap nhat data data moi
 -- Update ma_NCC moi bang data moi 
-update ncc a
+update "Suppliers_dim" a
 	set ma_ncc = b.ma_ncc 
 from ncc_xlsx b
 where a.ten_viet_tat = b.ten_viet_tat  
 	and a.ma_ncc like '%0.0%'
 
 -- Update data loi ky tu
-update ncc a
+update "Suppliers_dim" a
 	set ma_ncc = replace(trim(b.ma_ncc),'.0','')
 from ncc_xlsx b
 where a.ten_viet_tat = b.ten_viet_tat  
@@ -135,5 +136,5 @@ where a.ten_viet_tat = b.ten_viet_tat
 -- Check lai sau update
 select 
 	ma_ncc::int
-from ncc
+from "Suppliers_dim"
 where ten_ncc not ilike 'Chưa tìm ra'
