@@ -1,3 +1,72 @@
+-- Tao bang luu tru data giao dich
+create table inv044_txn
+	( 
+	so_chung_tu VARCHAR(50),
+	shipment_number VARCHAR(50),
+    ma_vat_tu VARCHAR(9),
+    so_lo VARCHAR(50),
+    ma_kho VARCHAR(3),
+    loai_giao_dich VARCHAR(50),
+    ngay_chung_tu date,
+    so_luong numeric,
+    dien_giai TEXT
+	)
+	
+-- Truncate table 
+truncate table inv044_txn
+-- Kiem tra sau truncate
+select * from inv044_txn 
+
+-- Them data vao bang luu tru	
+insert into inv044_txn
+	(
+	so_chung_tu,
+	shipment_number,
+	ma_vat_tu,
+	so_lo,
+	ma_kho,
+	loai_giao_dich,
+	ngay_chung_tu,
+	so_luong,
+	dien_giai 	
+	)
+	
+-- Filter data ma kho Home, các loai giao dich PO, Intransit
+select
+	so_chung_tu,
+	shipment_number,
+	ma_vat_tu,
+	so_lo,
+	ma_kho,
+	loai_giao_dich,
+	ngay_chung_tu,
+	so_luong_1,
+	dien_giai 
+from inv044
+where ma_kho 
+	in (
+	'23L','231','23A','23D','23N', -- Cai Cui
+	'24L','241','24A','24D','24N', -- Dak Lak
+	'38L','38D','38N','38E','011','012','014', -- Binh Duong
+	'211','21L','21D','21N','21A', -- Binh Dinh
+	'421','422','423','42A','42B','42L','42N', -- Da Nang 
+	'44A','44D','44L','44N', -- Nghe An 
+	'20L','20A','20N','20D', -- Binh Dinh
+	'22L', -- Yen Bai
+	'01M','01T','01U' -- Phong Ban Khác
+	'45A', '45B' -- Showwroom An Khanh
+	)
+and 
+	(
+	loai_giao_dich ilike '%PO Receipt%'
+or	loai_giao_dich ilike '%Intransit Shipment%'
+or	loai_giao_dich ilike '%Intransit Receipt%'
+	)
+--Check kq sau khi insert data	
+select count(*) from inv044_txn 
+
+
+-- Check luan chuyen hang hoa giua cac Tong Kho
 WITH movement AS (
     select
     	so_chung_tu,
@@ -6,11 +75,10 @@ WITH movement AS (
         so_lo,
         ma_kho,
         loai_giao_dich,
-        TO_DATE(REPLACE(ngay_chung_tu , ' ICT', ''),'Dy Mon DD HH24:MI:SS YYYY') ngay_chung_tu,
-        sum(so_luong_1) so_luong_1 
-    FROM "inv044_m3"
-    where ma_kho ilike '%L%'
-	and loai_giao_dich ilike '%intransit%'
+        ngay_chung_tu,
+        sum(so_luong) so_luong_1 
+    FROM inv044_txn
+    where loai_giao_dich ilike '%intransit%'
 	group by     
 		so_chung_tu,
     	shipment_number,
@@ -71,4 +139,3 @@ select
 from loop_detect  
 order by ma_vat_tu 
 
-----
