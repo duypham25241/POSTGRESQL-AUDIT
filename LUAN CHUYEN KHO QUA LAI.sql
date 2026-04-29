@@ -14,7 +14,7 @@ create table inv044_txn
     lan_nhap VARCHAR(9)
 	)
 	
--- Xoa du lieu toan bang
+-- Truncate table 
 truncate table inv044_txn
 -- Kiem tra sau truncate
 select * from inv044_txn 
@@ -34,8 +34,7 @@ insert into inv044_txn
 	dien_giai,
 	lan_nhap 
 	)
-
--- Them data nam 2025 vao bang tam	
+	
 --select count(*) from (	
 select
 	so_chung_tu,
@@ -70,7 +69,7 @@ or	loai_giao_dich ilike '%Intransit Shipment%'
 or	loai_giao_dich ilike '%Intransit Receipt%'
 	)
 
--- Check lai ket qua sau import
+-- Check ket qua sau import
 select * from inv044_txn it 
 
 -- Them data vao bang luu tru	
@@ -177,8 +176,9 @@ paired AS (
         AND m2.shipment_number = m1.so_chung_tu  -- Ke thua so chung tu
         AND m2.so_lo  = m1.so_lo  -- Dieu kien cung ma lot
         AND m1.ma_kho <> m2.ma_kho   -- Dieu kien phai khac ma kho
-),
---	
+)-- 
+
+,
 loop_detect AS (
     SELECT 
         p1.ma_2 ten_vat_tu,
@@ -191,17 +191,19 @@ loop_detect AS (
         p1.ngay_nhap as ngay_kho_nhap,
         p2.ma_1 ten_vat_tu_nl,
         p2.lo_1 so_lo_nl,
+        p2.kho_xuat as kho_xl,
+        p2.sl_xuat as SL_kho_xl,
+        p2.ngay_xuat as ngay_kho_xl,
         p2.kho_nhap AS kho_nl,
-        p2.sl_nhap  as SL_kho_nl,
-        p2.ngay_nhap ngay_kho_nl
+        p2.sl_nhap as SL_kho_nl,
+        p2.ngay_xuat ngay_kho_nl
     FROM paired p1
     JOIN paired p2
         ON p1.ma_2 = p2.ma_1 
         AND p1.kho_xuat = p2.kho_nhap
         AND p1.kho_nhap = p2.kho_xuat
-        AND p2.ngay_nhap > p1.ngay_xuat
+        AND p2.ngay_xuat >= p1.ngay_nhap 
 ) 
--- Check lai ket qua
 select 
 	* 
 from loop_detect  
